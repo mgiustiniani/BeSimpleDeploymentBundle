@@ -146,9 +146,10 @@ class Rsync
         $options     = array();
         $options[]   = $this->config['options'];
 
-        if (!empty($connection['port'])) {
-            $options[] = '-p '.$connection['port'];
+        if (!empty($connection['rsync_port'])) {
+            $options[] = '--rsh="ssh -p'.$connection['rsync_port'].'" ';
         }
+        else  $options[] = '--rsh="ssh" ';
 
         if ($this->config['delete']) {
             $options[] = '--delete';
@@ -166,6 +167,6 @@ class Rsync
 
         $strReal = $real ? '' : '--dry-run';
 
-        return sprintf('%s -e ssh %s %s %s %s', $this->config['command'], $strReal, implode(' ', $options), $source, $destination);
+        return sprintf('%s  %s %s %s %s', $this->config['command'], $strReal, implode(' ', $options), $source, $destination);
     }
 }

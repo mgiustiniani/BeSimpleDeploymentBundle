@@ -116,23 +116,23 @@ class Ssh
      */
     protected function connect(array $connection)
     {
-        $this->session = ssh2_connect($connection['host'], $connection['ssh_port']);
+        $this->session = \ssh2_connect($connection['host'], $connection['ssh_port']);
 
         if (!$this->session) {
             throw new \InvalidArgumentException(sprintf('SSH connection failed on "%s:%s"', $connection['host'], $connection['ssh_port']));
         }
 
         if (isset($connection['username']) && isset($connection['pubkey_file']) && isset($connection['privkey_file'])) {
-            if (!ssh2_auth_pubkey_file($connection['username'], $connection['pubkey_file'], $connection['privkey_file'], $connection['passphrase'])) {
+            if (!\ssh2_auth_pubkey_file($connection['username'], $connection['pubkey_file'], $connection['privkey_file'], $connection['passphrase'])) {
                 throw new \InvalidArgumentException(sprintf('SSH authentication failed for user "%s" with public key "%s"', $connection['username'], $connection['pubkey_file']));
             }
         } else if ($connection['username'] && $connection['password']) {
-            if (!ssh2_auth_password($this->session, $connection['username'], $connection['password'])) {
+            if (!\ssh2_auth_password($this->session, $connection['username'], $connection['password'])) {
                 throw new \InvalidArgumentException(sprintf('SSH authentication failed for user "%s"', $connection['username']));
             }
         }
 
-        $this->shell = ssh2_shell($this->session);
+        $this->shell = \ssh2_shell($this->session);
 
         if (!$this->shell) {
             throw new \RuntimeException(sprintf('Failed opening "%s" shell', $this->config['shell']));
