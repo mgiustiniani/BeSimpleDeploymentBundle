@@ -25,7 +25,7 @@ class BeSimpleDeploymentExtension extends Extension
         $loader->load('deployment.xml');
 
         $container->setParameter('be_simple_deployment.config.rsync', $config['rsync']);
-        $container->setParameter('be_simple_deployment.config.ssh', $config['rsync']);
+        $container->setParameter('be_simple_deployment.config.ssh', $config['ssh']);
         $container->setParameter('be_simple_deployment.config.rules', $config['rules']);
         $container->setParameter('be_simple_deployment.config.commands', $config['commands']);
         $container->setParameter('be_simple_deployment.config.servers', $config['servers']);

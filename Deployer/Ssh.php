@@ -122,8 +122,8 @@ class Ssh
             throw new \InvalidArgumentException(sprintf('SSH connection failed on "%s:%s"', $connection['host'], $connection['ssh_port']));
         }
 
-        if (isset($connection['username']) && isset($connection['pubkey_file']) && isset($connection['privkey_file'])) {
-            if (!\ssh2_auth_pubkey_file($connection['username'], $connection['pubkey_file'], $connection['privkey_file'], $connection['passphrase'])) {
+        if (isset($connection['username']) && isset($this->config['pubkey_file']) && isset($this->config['privkey_file'])) {
+            if (!\ssh2_auth_pubkey_file($this->session, $connection['username'], $this->config['pubkey_file'], $this->config['privkey_file'], $this->config['passphrase'])) {
                 throw new \InvalidArgumentException(sprintf('SSH authentication failed for user "%s" with public key "%s"', $connection['username'], $connection['pubkey_file']));
             }
         } else if ($connection['username'] && $connection['password']) {
@@ -157,7 +157,6 @@ class Ssh
     protected function execute(array $command)
     {
         $command = $this->buildCommand($command);
-
         $this->dispatcher->dispatch(Events::onDeploymentSshStart, new CommandEvent($command));
 
         $outStream = ssh2_exec($this->session, $command);

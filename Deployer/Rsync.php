@@ -145,7 +145,7 @@ class Rsync
         $destination = sprintf('%s%s:%s', $user, $connection['host'], $connection['path']);
         $options     = array();
         $options[]   = $this->config['options'];
-
+        
         if (!empty($connection['rsync_port'])) {
             $options[] = '--rsh="ssh -p'.$connection['rsync_port'].'" ';
         }
