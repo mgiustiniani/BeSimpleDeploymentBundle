@@ -23,6 +23,7 @@ class BeSimpleDeploymentExtension extends Extension
 
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('deployment.xml');
+        
 
         $container->setParameter('be_simple_deployment.config.rsync', $config['rsync']);
         $container->setParameter('be_simple_deployment.config.ssh', $config['ssh']);

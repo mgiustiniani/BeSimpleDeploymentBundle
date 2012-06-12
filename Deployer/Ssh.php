@@ -54,6 +54,7 @@ class Ssh
         $this->logger     = $logger;
         $this->dispatcher = $eventDispatcher;
         $this->config     = $config;
+        $this->env     = 'dev';
         $this->session    = null;
         $this->shell      = null;
         $this->stdout     = array();
@@ -96,9 +97,10 @@ class Ssh
     public function run(array $connection, array $commands, $real = false)
     {
         $this->connect($connection);
-        $this->execute(array('type' => 'shell', 'command' => sprintf('cd %s', $connection['path'])));
-
-        if ($real) {
+        
+        $this->config['path']= $connection['path'];
+        
+       if ($real) {
             foreach ($commands as $command) {
                 $this->execute($command);
             }
@@ -156,24 +158,26 @@ class Ssh
      */
     protected function execute(array $command)
     {
+    	
+   
         $command = $this->buildCommand($command);
         $this->dispatcher->dispatch(Events::onDeploymentSshStart, new CommandEvent($command));
-
-        $outStream = ssh2_exec($this->session, $command);
-        $errStream = ssh2_fetch_stream($outStream, SSH2_STREAM_STDERR);
+     
+   $outStream = \ssh2_exec($this->session, sprintf('cd %s && %s ', $this->config['path'], $command));
+  $errStream = \ssh2_fetch_stream( $outStream, SSH2_STREAM_STDERR);
 
         stream_set_blocking($outStream, true);
         stream_set_blocking($errStream, true);
 
         $stdout = explode("\n", stream_get_contents($outStream));
         $stderr = explode("\n", stream_get_contents($errStream));
-
+        
         if (count($stdout)) {
-            $this->dispatcher->dispatch(Events::onDeploymentRsyncFeedback, new FeedbackEvent('out', implode("\n", $stdout)));
+            $this->dispatcher->dispatch(Events::onDeploymentSshFeedback, new FeedbackEvent('out', implode("\n[SSH]\t\t", $stdout)));
         }
 
-        if (count($stdout)) {
-            $this->dispatcher->dispatch(Events::onDeploymentRsyncFeedback, new FeedbackEvent('err', implode("\n", $stderr)));
+        if (count($stderr)>1) {
+            $this->dispatcher->dispatch(Events::onDeploymentSshFeedback, new FeedbackEvent('err', implode("\n[SSH]\t\t", $stderr)));
         }
 
         $this->stdout = array_merge($this->stdout, $stdout);
@@ -184,7 +188,7 @@ class Ssh
             $this->dispatcher->dispatch(Events::onDeploymentSshSuccess, new CommandEvent($command));
         }
 
-        fclose($outStream);
+       fclose($outStream);
         fclose($errStream);
     }
 
@@ -197,8 +201,13 @@ class Ssh
         if ($command['type'] === 'shell') {
             return $command['command'];
         }
+        
+        if ($command['type'] === 'symfony') {
+        
+        	
+        	$symfony = './app/console';
+        }
 
-        $symfony = $this->config['symfony_command'];
         $env = $command['env'] ?: $this->env;
 
         return sprintf('%s %s --env="%s"', $symfony, $command['command'], $env);
